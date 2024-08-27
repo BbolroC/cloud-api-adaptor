@@ -166,7 +166,7 @@ BINARIES_DOCKERFILE := Dockerfile.podvm_binaries$(DOCKERFILE_SUFFIX)
 PODVM_DOCKERFILE := Dockerfile.podvm$(DOCKERFILE_SUFFIX)
 
 podvm-builder:
-	docker buildx build -t $(PODVM_BUILDER_IMAGE) -f podvm/$(BUILDER_DOCKERFILE) \
+	docker buildx build --platform "linux/$(ARCH)" -t $(PODVM_BUILDER_IMAGE) -f podvm/$(BUILDER_DOCKERFILE) \
 	--build-arg GO_VERSION=$(GO_VERSION) \
 	--build-arg ORG_ID=$(ORG_ID) \
 	--build-arg ACTIVATION_KEY=$(ACTIVATION_KEY) \
@@ -181,7 +181,7 @@ podvm-builder:
 
 podvm-binaries:
 	cp -rf ../../.git .git
-	cd ../ && docker buildx build -t $(PODVM_BINARIES_IMAGE) -f cloud-api-adaptor/podvm/$(BINARIES_DOCKERFILE) \
+	cd ../ && docker buildx build --platform "linux/$(ARCH)" -t $(PODVM_BINARIES_IMAGE) -f cloud-api-adaptor/podvm/$(BINARIES_DOCKERFILE) \
 	--build-arg BUILDER_IMG=$(PODVM_BUILDER_IMAGE) \
 	--build-arg PODVM_DISTRO=$(PODVM_DISTRO) \
 	--build-arg ARCH=$(ARCH) \
@@ -203,7 +203,7 @@ ifeq ($(shell test -f $(IMAGE_URL) && echo 1 || echo 0),1)
 endif
 endif
 	cp -rf ../../.git .git
-	cd ../ && docker buildx build -t $(PODVM_IMAGE) -f cloud-api-adaptor/podvm/$(PODVM_DOCKERFILE) \
+	cd ../ && docker buildx build --platform "linux/$(ARCH)" -t $(PODVM_IMAGE) -f cloud-api-adaptor/podvm/$(PODVM_DOCKERFILE) \
 	--build-arg BUILDER_IMG=$(PODVM_BUILDER_IMAGE) \
 	--build-arg BINARIES_IMG=$(PODVM_BINARIES_IMAGE) \
 	--build-arg PODVM_DISTRO=$(PODVM_DISTRO) \
