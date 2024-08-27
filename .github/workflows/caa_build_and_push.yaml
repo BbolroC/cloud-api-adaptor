@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       dev_arches:
-        default: 'linux/amd64'
+        default: 'linux/s390x'
         description: 'Dev build arches. Expected a docker buildx "--platform" string format'
         required: false
         type: string
