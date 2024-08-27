@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # download-image.sh
 # takes an image reference and a directory and
 # extracts the qcow image into that directory
