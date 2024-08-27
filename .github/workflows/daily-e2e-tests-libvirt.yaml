@@ -6,10 +6,13 @@
 name: daily e2e tests for libvirt
 
 on:
-  schedule:
-  # Runs "at 04:15(UTC time) every day" (see https://crontab.guru)
-  # will base on default branch `main`
-    - cron: '15 4 * * *'
+  push:
+    branches:
+      - enable-libvirt-test-s390x
+#  schedule:
+#  # Runs "at 04:15(UTC time) every day" (see https://crontab.guru)
+#  # will base on default branch `main`
+#    - cron: '15 4 * * *'
   workflow_dispatch:
 
 jobs:
@@ -19,5 +22,5 @@ jobs:
       caa_image_tag: latest
       git_ref: refs/heads/main
       podvm_image_tag: latest
-      registry: ghcr.io/${{ github.repository_owner }}
+      registry: ghcr.io/bbolroc
     secrets: inherit

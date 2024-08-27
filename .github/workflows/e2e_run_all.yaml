@@ -164,11 +164,11 @@ jobs:
         provider:
           - generic
         arch:
-          - amd64
+          - s390x
     uses: ./.github/workflows/e2e_libvirt.yaml
     with:
-      caa_image: ${{ inputs.registry }}/cloud-api-adaptor:${{ inputs.caa_image_tag }}-dev
-      podvm_image: ${{ inputs.registry }}/podvm-${{ matrix.provider }}-${{ matrix.os }}-${{ matrix.arch }}:${{ inputs.podvm_image_tag }}
+      caa_image: ghcr.io/bbolroc/cloud-api-adaptor:latest-dev
+      podvm_image: ghcr.io/bbolroc/podvm-generic-ubuntu-s390x:latest
       install_directory_artifact: install_directory
       git_ref: ${{ inputs.git_ref }}
     secrets: inherit

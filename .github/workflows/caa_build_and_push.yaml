@@ -93,8 +93,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ${{ inputs.registry }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: BbolroC
+          password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
       - name: Build and push image
         uses: nick-fields/retry@v2
