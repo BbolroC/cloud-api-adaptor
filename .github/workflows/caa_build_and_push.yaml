@@ -53,15 +53,6 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: "${{ inputs.git_ref }}"
-
-      - name: Rebase the code
-        if: github.event_name == 'pull_request_target'
-        working-directory: ./
-        run: |
-          ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
 
       - name: Read properties from versions.yaml
         run: |
