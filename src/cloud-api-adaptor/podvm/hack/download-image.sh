@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # download-image.sh
 # takes an image reference and a directory and
 # extracts the qcow image into that directory
@@ -40,7 +40,7 @@ fi
 
 # Check if the image name includes "podvm-generic-fedora-s390x-se"
 # The "podvm-generic-fedora-s390x-se" docker image is built on s390x host, so here must use s390x platform
-if [[ "$image" == *"podvm-generic-fedora-s390x-se"* ]]; then
+if [[ "$image" == *"s390x"* ]]; then
     platform="s390x"
 else
     platform="amd64"
