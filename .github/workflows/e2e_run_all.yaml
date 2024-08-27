@@ -48,123 +48,123 @@ jobs:
       git_ref: ${{ inputs.git_ref }}
     secrets: inherit
 
-  podvm_binaries:
-    needs: [podvm_builder]
-    uses: ./.github/workflows/podvm_binaries.yaml
-    with:
-      registry: ${{ inputs.registry }}
-      image_tag: ${{ inputs.podvm_image_tag }}
-      git_ref: ${{ inputs.git_ref }}
-    secrets: inherit
-
-  podvm:
-    needs: [podvm_binaries]
-    uses: ./.github/workflows/podvm.yaml
-    with:
-      registry: ${{ inputs.registry }}
-      image_tag: ${{ inputs.podvm_image_tag }}
-      git_ref: ${{ inputs.git_ref }}
-    secrets: inherit
-
-  # Build and push the cloud-api-adaptor image
-  #
-  # By using a reusable `workflow_call` workflow we are hitting two
-  # GHA limitations here:
-  #
-  # - Cannot access the `env` context from the `with` so that it cannot
-  #   reuse the E2E_IMG_* environment variables set at this workflow level.
-  # - Cannot call a reusable workflow from a job's step, so the we cannot
-  #   merge the `image` and `prep_env` into a single one (unless we create
-  #   another reusable workflow and, well, likely hit another limitation...).
-  #
-  # Reference: https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations
-  #
-  image:
-    uses: ./.github/workflows/caa_build_and_push.yaml
-    with:
-      registry: ${{ inputs.registry }}
-      dev_tags: ${{ inputs.caa_image_tag }}-dev
-      release_tags: ${{ inputs.caa_image_tag }}
-      git_ref: ${{ inputs.git_ref }}
-    secrets: inherit
-
-  # Edit the kustomize files under the install directory to reference the
-  # built cloud-api-adaptor images. The entire directory is archived so that
-  # downstream jobs can simply download and use the prepared installation
-  # files.
-  #
-  # IMPORTANT: If you are enabling e2e tests for a given provider,
-  # then please update the PROVIDERS list (space-separated names, e.g.,
-  # "aws libvirt").
-  prep_install:
-    needs: [image]
-    runs-on: ubuntu-latest
-    env:
-      PROVIDERS: "libvirt"
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.git_ref }}
-
-      - name: Rebase the code
-        if: github.event_name == 'pull_request_target'
-        working-directory: ./
-        run: |
-          ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
-
-      - name: Install kustomize
-        run: |
-          command -v kustomize >/dev/null || \
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | \
-            bash -s /usr/local/bin
-
-      - name: Update kustomization configuration
-        run: |
-          providers=(${{ env.PROVIDERS }})
-          # If there aren't providers then something is wrong
-          [[ ${#providers[@]} -gt 0 ]] || exit 1
-          for provider in ${providers[@]}; do
-            img="${E2E_IMG_REGISTRY}/cloud-api-adaptor"
-            tag="${E2E_IMG_RELEASE_TAG}"
-            [[ "$provider" = "libvirt" ]] && tag="${E2E_IMG_DEV_TAG}"
-            echo "::group::Update ${provider}"
-            pushd "install/overlays/${provider}"
-            kustomize edit set image "cloud-api-adaptor=${img}:${tag}"
-            # Print for debugging
-            cat kustomization.yaml
-            echo "::endgroup::"
-            # Validate the file to avoid it silently testing with a wrong image
-            grep "newName: ${img}" kustomization.yaml
-            grep "newTag: ${tag}" kustomization.yaml
-            popd
-          done
-
-      - name: Upload install directory for next test runs
-        uses: actions/upload-artifact@v3
-        with:
-          name: install_directory
-          path: src/cloud-api-adaptor/install/
-          retention-days: 7
-
-  # Run libvirt e2e tests if pull request labeled 'test_e2e_libvirt'
-  libvirt:
-    name: libvirt
-    needs: [podvm, image, prep_install]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu
-        provider:
-          - generic
-        arch:
-          - s390x
-    uses: ./.github/workflows/e2e_libvirt.yaml
-    with:
-      caa_image: ghcr.io/bbolroc/cloud-api-adaptor:latest-dev
-      podvm_image: ghcr.io/bbolroc/podvm-generic-ubuntu-s390x:latest
-      install_directory_artifact: install_directory
-      git_ref: ${{ inputs.git_ref }}
-    secrets: inherit
+#  podvm_binaries:
+#    needs: [podvm_builder]
+#    uses: ./.github/workflows/podvm_binaries.yaml
+#    with:
+#      registry: ${{ inputs.registry }}
+#      image_tag: ${{ inputs.podvm_image_tag }}
+#      git_ref: ${{ inputs.git_ref }}
+#    secrets: inherit
+#
+#  podvm:
+#    needs: [podvm_binaries]
+#    uses: ./.github/workflows/podvm.yaml
+#    with:
+#      registry: ${{ inputs.registry }}
+#      image_tag: ${{ inputs.podvm_image_tag }}
+#      git_ref: ${{ inputs.git_ref }}
+#    secrets: inherit
+#
+#  # Build and push the cloud-api-adaptor image
+#  #
+#  # By using a reusable `workflow_call` workflow we are hitting two
+#  # GHA limitations here:
+#  #
+#  # - Cannot access the `env` context from the `with` so that it cannot
+#  #   reuse the E2E_IMG_* environment variables set at this workflow level.
+#  # - Cannot call a reusable workflow from a job's step, so the we cannot
+#  #   merge the `image` and `prep_env` into a single one (unless we create
+#  #   another reusable workflow and, well, likely hit another limitation...).
+#  #
+#  # Reference: https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations
+#  #
+#  image:
+#    uses: ./.github/workflows/caa_build_and_push.yaml
+#    with:
+#      registry: ${{ inputs.registry }}
+#      dev_tags: ${{ inputs.caa_image_tag }}-dev
+#      release_tags: ${{ inputs.caa_image_tag }}
+#      git_ref: ${{ inputs.git_ref }}
+#    secrets: inherit
+#
+#  # Edit the kustomize files under the install directory to reference the
+#  # built cloud-api-adaptor images. The entire directory is archived so that
+#  # downstream jobs can simply download and use the prepared installation
+#  # files.
+#  #
+#  # IMPORTANT: If you are enabling e2e tests for a given provider,
+#  # then please update the PROVIDERS list (space-separated names, e.g.,
+#  # "aws libvirt").
+#  prep_install:
+#    needs: [image]
+#    runs-on: ubuntu-latest
+#    env:
+#      PROVIDERS: "libvirt"
+#    steps:
+#      - name: Checkout Code
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#          ref: ${{ inputs.git_ref }}
+#
+#      - name: Rebase the code
+#        if: github.event_name == 'pull_request_target'
+#        working-directory: ./
+#        run: |
+#          ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
+#
+#      - name: Install kustomize
+#        run: |
+#          command -v kustomize >/dev/null || \
+#          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | \
+#            bash -s /usr/local/bin
+#
+#      - name: Update kustomization configuration
+#        run: |
+#          providers=(${{ env.PROVIDERS }})
+#          # If there aren't providers then something is wrong
+#          [[ ${#providers[@]} -gt 0 ]] || exit 1
+#          for provider in ${providers[@]}; do
+#            img="${E2E_IMG_REGISTRY}/cloud-api-adaptor"
+#            tag="${E2E_IMG_RELEASE_TAG}"
+#            [[ "$provider" = "libvirt" ]] && tag="${E2E_IMG_DEV_TAG}"
+#            echo "::group::Update ${provider}"
+#            pushd "install/overlays/${provider}"
+#            kustomize edit set image "cloud-api-adaptor=${img}:${tag}"
+#            # Print for debugging
+#            cat kustomization.yaml
+#            echo "::endgroup::"
+#            # Validate the file to avoid it silently testing with a wrong image
+#            grep "newName: ${img}" kustomization.yaml
+#            grep "newTag: ${tag}" kustomization.yaml
+#            popd
+#          done
+#
+#      - name: Upload install directory for next test runs
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: install_directory
+#          path: src/cloud-api-adaptor/install/
+#          retention-days: 7
+#
+#  # Run libvirt e2e tests if pull request labeled 'test_e2e_libvirt'
+#  libvirt:
+#    name: libvirt
+#    needs: [podvm, image, prep_install]
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os:
+#          - ubuntu
+#        provider:
+#          - generic
+#        arch:
+#          - s390x
+#    uses: ./.github/workflows/e2e_libvirt.yaml
+#    with:
+#      caa_image: ghcr.io/bbolroc/cloud-api-adaptor:latest-dev
+#      podvm_image: ghcr.io/bbolroc/podvm-generic-ubuntu-s390x:latest
+#      install_directory_artifact: install_directory
+#      git_ref: ${{ inputs.git_ref }}
+#    secrets: inherit

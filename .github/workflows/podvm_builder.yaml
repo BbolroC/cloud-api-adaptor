@@ -63,7 +63,7 @@ jobs:
         password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
     - name: Build and push
-      run: make podvm-builder
+      run: make podvm-builder ARCH=s390x
       env:
           PUSH: true
           REGISTRY: ${{ inputs.registry }}
