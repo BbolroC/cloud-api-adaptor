@@ -4,10 +4,10 @@
 #
 # Builds pod vm image inside container
 #
-ARG BUILDER_IMG="quay.io/confidential-containers/podvm-builder-ubuntu"
+ARG BUILDER_IMG="ghcr.io/bbolroc/podvm-builder-ubuntu"
 
 # Override it via build-args for different platforms
-ARG BINARIES_IMG="quay.io/confidential-containers/podvm-binaries-ubuntu-amd64"
+ARG BINARIES_IMG="ghcr.io/bbolroc/podvm-binaries-ubuntu-s390x"
 
 FROM ${BINARIES_IMG} AS podvm_binaries
 FROM ${BUILDER_IMG} AS podvm_builder
