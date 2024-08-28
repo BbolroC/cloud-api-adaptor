@@ -166,7 +166,7 @@ BINARIES_DOCKERFILE := Dockerfile.podvm_binaries$(DOCKERFILE_SUFFIX)
 PODVM_DOCKERFILE := Dockerfile.podvm$(DOCKERFILE_SUFFIX)
 
 podvm-builder:
-	docker buildx build -t $(PODVM_BUILDER_IMAGE) -f podvm/$(BUILDER_DOCKERFILE) \
+	DOCKER_BUILDKIT=1 docker build -t $(PODVM_BUILDER_IMAGE) -f podvm/$(BUILDER_DOCKERFILE) \
 	--build-arg GO_VERSION=$(GO_VERSION) \
 	--build-arg ORG_ID=$(ORG_ID) \
 	--build-arg ACTIVATION_KEY=$(ACTIVATION_KEY) \

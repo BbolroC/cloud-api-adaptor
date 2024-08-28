@@ -30,7 +30,7 @@ jobs:
           # Please keep this list in alphabetical order.
           - ubuntu
         runner:
-          - ubuntu-latest
+          - s390x-test
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -46,6 +46,7 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
+      if: matrix.runner != 's390x-test'
 
     - name: Login to Docker container Registry
       if: ${{ startsWith(inputs.registry, 'docker.io') }}

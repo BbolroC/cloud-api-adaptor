@@ -22,7 +22,7 @@ tools:
   bats: 1.10.0
   golang: 1.21.12
   rust: 1.75.0
-  protoc: 3.15.0
+  protoc: 27.4
   packer: v1.9.4
   kcli: 99.0.202407031308
 # Referenced Git repositories
