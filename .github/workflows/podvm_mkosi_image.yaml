@@ -1,19 +1,18 @@
 name: mkosi build podvm builder, binaries and image
 
 on:
+  push:
+    branches:
+      - mkosi-workflow-multi-arch
   workflow_dispatch:
     inputs:
       registry:
-        default: 'quay.io/confidential-containers'
+        default: 'quay.io/bbolroc'
         required: false
         type: string
       image_tag:
-        default: ''
+        default: 'test'
         required: false
-        type: string
-      git_ref:
-        description: Git ref to checkout the cloud-api-adaptor repository.
-        required: true
         type: string
 
 jobs:
@@ -25,22 +24,17 @@ jobs:
       matrix:
         runner:
           - ubuntu-22.04
-          - S390X
+          - s390x-test
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: "${{ inputs.git_ref }}"
 
-      - name: Rebase the code
-        if: github.event_name == 'pull_request_target'
-        working-directory: ./
-        run: |
-          ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
+      - name: Install nix for x86
+        if: matrix.runner == 'ubuntu-22.04'
+        uses: cachix/install-nix-action@v22
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -58,8 +52,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: BbolroC
+          password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
       - name: Install build dependencies
         run: |
@@ -70,7 +64,7 @@ jobs:
       - name: Install mkosi
         run: |
           git clone -b v22 https://github.com/systemd/mkosi
-          sudo rm /usr/local/bin/mkosi | true
+          sudo rm -f /usr/local/bin/mkosi | true
           sudo ln -s $PWD/mkosi/bin/mkosi /usr/local/bin/mkosi
           mkosi --version
 

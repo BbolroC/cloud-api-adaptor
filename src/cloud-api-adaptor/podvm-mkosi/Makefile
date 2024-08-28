@@ -65,7 +65,7 @@ PHONY: image
 image:
 	@echo "Enabling production preset..."
 	rm -rf resources/build*Image
-	rm -rf ./build
+	sudo rm -rf ./build
 	@echo "Building image..."
 ifeq ($(SE_BOOT),true)
 	touch resources/buildS390xImage
@@ -82,9 +82,10 @@ else ifeq ($(ARCH),s390x)
 	sudo mkosi --profile production.conf --image system
 	sudo -E ../hack/build-s390x-image.sh
 	@echo "Building docker image..."
+	sudo chown -R $(USER): build
 	docker buildx build \
-		-t $(PODVM_NAME):$(PODVM_TAG) \
-		-t $(PODVM_NAME):latest \
+		-t ghcr.io/bbolroc/podvm-generic-fedora-s390x:hchoi-test \
+		-t ghcr.io/bbolroc/podvm-generic-fedora-s390x:latest \
 		--load \
 		-f ../podvm/Dockerfile.podvm.fedora .
 else
@@ -97,7 +98,7 @@ image-debug:
 	@echo "Enabling debug preset..."
 	rm -rf resources/build*Image
 	touch resources/buildDebugImage
-	rm -rf ./build
+	sudo rm -rf ./build
 	@echo "Building debug image..."
 ifeq ($(SE_BOOT),true)
 	touch resources/buildS390xImage
@@ -114,9 +115,10 @@ else ifeq ($(ARCH),s390x)
 	sudo mkosi --profile debug.conf
 	sudo -E ../hack/build-s390x-image.sh
 	@echo "Building docker image..."
+	sudo chown -R $(USER): build
 	docker buildx build \
-		-t $(PODVM_NAME):$(PODVM_TAG) \
-		-t $(PODVM_NAME):latest \
+		-t ghcr.io/bbolroc/podvm-generic-fedora-s390x:hchoi-test \
+		-t ghcr.io/bbolroc/podvm-generic-fedora-s390x:latest \
 		--load \
 		-f ../podvm/Dockerfile.podvm.fedora .
 else
@@ -152,5 +154,5 @@ push-image-container:
 PHONY: clean
 clean:
 	rm -rf resources/buildDebugImage
-	rm -rf ./build
+	sudo rm -rf ./build
 	rm -rf ./resources/binaries-tree
