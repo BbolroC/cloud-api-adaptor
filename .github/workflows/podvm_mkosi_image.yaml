@@ -2,6 +2,19 @@ name: mkosi build podvm builder, binaries and image
 
 on:
   workflow_dispatch:
+    inputs:
+      registry:
+        default: 'quay.io/confidential-containers'
+        required: false
+        type: string
+      image_tag:
+        default: ''
+        required: false
+        type: string
+      git_ref:
+        description: Git ref to checkout the cloud-api-adaptor repository.
+        required: true
+        type: string
 
 jobs:
   build-podvm-image-mkosi:
@@ -11,6 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         runner:
+          - ubuntu-22.04
           - S390X
     permissions:
       contents: read
@@ -18,6 +32,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: "${{ inputs.git_ref }}"
+
+      - name: Rebase the code
+        if: github.event_name == 'pull_request_target'
+        working-directory: ./
+        run: |
+          ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -29,6 +52,14 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
           logout: false
+
+      - name: Login to Github Container Registry
+        if: ${{ startsWith(inputs.registry, 'ghcr.io') }}
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install build dependencies
         run: |
@@ -46,15 +77,31 @@ jobs:
       - name: Build builder
         working-directory: src/cloud-api-adaptor/podvm-mkosi
         run: make fedora-binaries-builder
+        env:
+          PUSH: true
+          REGISTRY: ${{ inputs.registry }}
+          PODVM_TAG: ${{ inputs.image_tag }}
 
       - name: Build binaries
         working-directory: src/cloud-api-adaptor/podvm-mkosi
         run: make binaries
+        env:
+          PUSH: true
+          REGISTRY: ${{ inputs.registry }}
+          PODVM_TAG: ${{ inputs.image_tag }}
 
-      - name: Build image
+      - name: Build debug image
         run: make image-debug
         working-directory: src/cloud-api-adaptor/podvm-mkosi
+        env:
+          PUSH: true
+          REGISTRY: ${{ inputs.registry }}
+          PODVM_TAG: debug-${{ inputs.image_tag }}
 
-      - name: Push image
-        run: make push-image
+      - name: Build image
+        run: make image
         working-directory: src/cloud-api-adaptor/podvm-mkosi
+        env:
+          PUSH: true
+          REGISTRY: ${{ inputs.registry }}
+          PODVM_TAG: ${{ inputs.image_tag }}
