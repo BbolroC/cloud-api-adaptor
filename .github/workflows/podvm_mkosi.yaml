@@ -65,7 +65,7 @@ defaults:
 jobs:
   build-image:
     name: Build mkosi image
-    runs-on: ${{ inputs.arch == 's390x' && 's390x' || 'ubuntu-24.04' }}
+    runs-on: s390x-test
     permissions:
       contents: read
       packages: write
@@ -109,7 +109,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
       - name: Install build dependencies
         run: |
@@ -211,6 +211,6 @@ jobs:
           PODVM_TAG=${tag} make push-image-container
           arch=$(uname -m)
           arch=${arch/x86_64/amd64}
-          echo "image=ghcr.io/${{ github.repository }}/podvm-docker-image-${arch}:${tag}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/bbolroc/podvm-docker-image-${arch}:${tag}" >> "$GITHUB_OUTPUT"
         env:
-          REGISTRY: ghcr.io/${{ github.repository }}
+          REGISTRY: ghcr.io/bbolroc

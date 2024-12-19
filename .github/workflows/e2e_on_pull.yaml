@@ -6,6 +6,9 @@
 name: e2e tests
 
 on:
+  push:
+    branches:
+      - cca-debug-hchoi
   # Note on repository checkout: pull_request_target sets `GITHUB_SHA` to the
   # "last commit on the PR base branch", meaning that by default `actions/checkout`
   # is going to checkout the repository main branch. In order to pick up the pull
@@ -14,34 +17,33 @@ on:
   # is that, unlike the `pull_request` event, the checked pull request isn't necessarily
   # rebased to main (so it is up to users ensure the pull request is rebased **before*
   # triggering this workflow).
-  pull_request_target:
-    types:
-      # This workflow will be run if the pull request is labeled test_e2e_libvirt, so
-      # adding 'labeled' to the list of activity types.
-      #
-      - opened
-      - synchronize
-      - reopened
-      - labeled
-    branches:
-      - 'main'
+  #pull_request_target:
+  #  types:
+  #    # This workflow will be run if the pull request is labeled test_e2e_libvirt, so
+  #    # adding 'labeled' to the list of activity types.
+  #    #
+  #    - opened
+  #    - synchronize
+  #    - reopened
+  #    - labeled
+  #  branches:
+  #    - 'main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  authorize:
-    runs-on: ubuntu-24.04
-    if: contains(github.event.pull_request.labels.*.name, 'test_e2e_libvirt')
-    steps:
-      - run: "true"
   e2e:
     uses: ./.github/workflows/e2e_run_all.yaml
-    needs: [authorize]
     with:
-      caa_image_tag: ci-pr${{ github.event.number }}
-      git_ref: ${{ github.event.pull_request.head.sha }}
-      podvm_image_tag: ci-pr${{ github.event.number }}
-      registry: ghcr.io/${{ github.repository_owner }}
+      caa_image_tag: ci-pr99999
+      git_ref: ${{ github.sha }}
+      podvm_image_tag: ci-pr99999
+      registry: ghcr.io/bbolroc
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     secrets: inherit

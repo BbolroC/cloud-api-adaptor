@@ -164,7 +164,7 @@ jobs:
         run: |
           test/utils/checkout_kbs.sh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
       - name: run tests
         id: runTests
